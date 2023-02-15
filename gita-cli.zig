@@ -2,6 +2,14 @@ const std = @import("std");
 const AyArgparse = @import("ay-arg");
 const source = @embedFile("gita.json");
 
+const Options = struct {
+    sanskrit: bool = true,
+    english: bool = true,
+    full_chapter: bool = true,
+    chapter_id: []const u8 = undefined,
+    verse_id: ?[]const u8 = null,
+};
+
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
@@ -21,22 +29,20 @@ pub fn main() !void {
     defer argparse.deinit();
 
     try argparse.parse(args[1..]);
-    const chapter_id = argparse.positionals.items[0];
-    const verse_id = argparse.positionals.items[1];
 
-    var parser = std.json.Parser.init(allocator, false);
-    defer parser.deinit();
+    var option: Options = .{};
 
-    var tree = try parser.parse(source);
-    defer tree.deinit();
+    if (argparse.positionals.items.len < 1) {
+        // TODO: usage
+    }
 
-    const chapter = tree.root.Object.get(chapter_id).?;
-    const verse = chapter.Object.get(verse_id).?;
+    option.chapter_id = argparse.positionals.items[0];
 
-    var option: struct {
-        sanskrit: bool = true,
-        english: bool = true,
-    } = .{};
+    if (argparse.positionals.items.len < 2) {
+        option.full_chapter = true;
+    } else {
+        option.verse_id = argparse.positionals.items[1];
+    }
 
     if (argparse.arguments.get("sanskrit")) |s| {
         if (std.mem.eql(u8, s, "false")) {
@@ -50,6 +56,36 @@ pub fn main() !void {
         }
     }
 
+    var parser = std.json.Parser.init(allocator, false);
+    defer parser.deinit();
+
+    var tree = try parser.parse(source);
+    defer tree.deinit();
+
+    const chapter = tree.root.Object.get(option.chapter_id).?;
+
+    if (option.verse_id) |verse_id| {
+        const verse = chapter.Object.get(verse_id).?;
+        try printVerse(option, verse, stdout);
+    } else {
+        var i: usize = 1;
+        const num_verses = chapter.Object.count();
+        while (i < num_verses + 1) : (i += 1) {
+            const verse_id = try std.fmt.allocPrint(allocator, "{}", .{i});
+            defer allocator.free(verse_id);
+
+            const verse = chapter.Object.get(verse_id).?;
+            try printVerse(option, verse, stdout);
+
+            if (i != num_verses)
+                try stdout.writeAll("\n\n\n\n");
+        }
+    }
+
+    try bw.flush();
+}
+
+fn printVerse(option: Options, verse: std.json.Value, stdout: anytype) !void {
     if (option.sanskrit) {
         try stdout.print("{s}\n", .{
             verse.Object.get("sanskrit").?.String,
@@ -61,6 +97,4 @@ pub fn main() !void {
             verse.Object.get("english").?.String,
         });
     }
-
-    try bw.flush();
 }
