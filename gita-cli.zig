@@ -58,6 +58,8 @@ pub fn main() !void {
         option.no_tag = true;
 
     var gita = try LibGita.init(allocator, option);
+    defer gita.deinit();
+
     if (verse_id) |vid| {
         try gita.printVerse(
             stdout,

@@ -28,6 +28,10 @@ pub fn init(allocator: std.mem.Allocator, options: Options) !LibGita {
     };
 }
 
+pub fn deinit(lib: *LibGita) void {
+    lib.tree.deinit();
+}
+
 pub fn printVerse(lib: *LibGita, writer: anytype, chapter_id: usize, verse_id: usize) !void {
     const chapter = lib.tree.root.Array.items[chapter_id - 1];
     const verse = chapter.Array.items[verse_id - 1];
