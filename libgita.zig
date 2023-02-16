@@ -27,31 +27,19 @@ pub fn init(allocator: std.mem.Allocator, options: Options) !LibGita {
 }
 
 pub fn printVerse(lib: *LibGita, writer: anytype, chapter_id: usize, verse_id: usize) !void {
-    var chapter_str: [2]u8 = [_]u8{' '} ** 2;
-    var verse_str: [2]u8 = [_]u8{' '} ** 2;
-
-    getChapterVerseString(chapter_id, &chapter_str, verse_id, &verse_str);
-
-    const chapter = lib.tree.root.Object.get(std.mem.trimRight(u8, chapter_str[0..], " ")).?;
-    const verse = chapter.Object.get(std.mem.trimRight(u8, verse_str[0..], " ")).?;
+    const chapter = lib.tree.root.Array.items[chapter_id - 1];
+    const verse = chapter.Array.items[verse_id - 1];
 
     try printVerseRaw(lib.options, verse, writer);
 }
 
 pub fn printChapter(lib: *LibGita, writer: anytype, chapter_id: usize) !void {
-    var chapter_str: [2]u8 = [_]u8{' '} ** 2;
-
-    getChapterVerseString(chapter_id, &chapter_str, null, null);
-
-    const chapter = lib.tree.root.Object.get(std.mem.trimRight(u8, chapter_str[0..], " ")).?;
-    const num_verses = chapter.Object.count();
+    const chapter = lib.tree.root.Array.items[chapter_id - 1];
+    const num_verses = chapter.Array.items.len;
 
     var i: usize = 1;
     while (i < num_verses + 1) : (i += 1) {
-        var verse_str: [2]u8 = [_]u8{' '} ** 2;
-        getChapterVerseString(null, null, i, &verse_str);
-
-        const verse = chapter.Object.get(std.mem.trimRight(u8, verse_str[0..], " ")).?;
+        const verse = chapter.Array.items[i - 1];
         try printVerseRaw(lib.options, verse, writer);
 
         if (i != num_verses)
@@ -70,15 +58,5 @@ fn printVerseRaw(option: LibGita.Options, verse: std.json.Value, stdout: anytype
         try stdout.print("{s}\n", .{
             verse.Object.get("english").?.String,
         });
-    }
-}
-
-fn getChapterVerseString(chapter: ?usize, chapter_str: ?[]u8, verse: ?usize, verse_str: ?[]u8) void {
-    if (chapter) |c| {
-        _ = std.fmt.formatIntBuf(chapter_str.?, c, 10, .lower, .{});
-    }
-
-    if (verse) |v| {
-        _ = std.fmt.formatIntBuf(verse_str.?, v, 10, .lower, .{});
     }
 }
