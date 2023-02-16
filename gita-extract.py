@@ -4,11 +4,11 @@ import re
 NUM_BOOKS = 18
 
 with open("gita.json", "w+") as w:
-    w.write("{\n")
+    w.write("[\n")
     for fi in range(1, NUM_BOOKS + 1):
         name = f"sources/Bhagavad-Gita_(Besant_4th)_Discourse_{fi}.txt"
         with open(name) as f:
-            w.write(f"    \"{fi}\": {{\n")
+            w.write("    [\n")
 
             content = f.read()
             starting_pos = content.index("DISCOURSE.")
@@ -34,10 +34,10 @@ with open("gita.json", "w+") as w:
                 english = [s.strip() for s in english.split('\n') if s]
 
                 # Write Json
-                w.write(f"        \"{i+1}\": {{\n")
+                w.write("        {\n")
                 w.write("            \"sanskrit\": \"{}\",\n".format('\\n'.join(sanskrit)))
                 w.write("            \"english\": \"{}\"\n".format('\\n'.join(english)))
                 w.write("        }}{}\n".format(',' if i != len(verses) - 2 else ''))
 
-            w.write("    }}{}\n".format(',' if fi != NUM_BOOKS else ''))
-    w.write("}\n")
+            w.write("    ]{}\n".format(',' if fi != NUM_BOOKS else ''))
+    w.write("]\n")
