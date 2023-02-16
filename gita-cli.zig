@@ -13,6 +13,8 @@ pub fn main() !void {
     defer allocator.free(args);
 
     const params = &[_]AyArgparse.ParamDesc{
+        .{ .long = "no-name" },
+        .{ .long = "no-tag" },
         .{ .long = "sanskrit", .need_value = true },
         .{ .long = "english", .need_value = true },
     };
@@ -48,6 +50,12 @@ pub fn main() !void {
             option.english = false;
         }
     }
+
+    if (argparse.arguments.get("no-name") != null)
+        option.no_name = true;
+
+    if (argparse.arguments.get("no-tag") != null)
+        option.no_tag = true;
 
     var gita = try LibGita.init(allocator, option);
     if (verse_id) |vid| {

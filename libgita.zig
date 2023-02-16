@@ -6,6 +6,8 @@ const LibGita = @This();
 pub const Options = struct {
     sanskrit: bool = true,
     english: bool = true,
+    no_name: bool = false,
+    no_tag: bool = false,
 };
 
 allocator: std.mem.Allocator,
@@ -48,6 +50,17 @@ pub fn printChapter(lib: *LibGita, writer: anytype, chapter_id: usize) !void {
 }
 
 fn printVerseRaw(option: LibGita.Options, verse: std.json.Value, stdout: anytype) !void {
+    if (!option.no_name) {
+        try stdout.writeAll("Bhagavad Gita: ");
+    }
+
+    if (!option.no_tag) {
+        try stdout.print("{}.{}", .{ 1, 1 });
+    }
+
+    if (@boolToInt(option.no_name) & @boolToInt(option.no_tag) == 0)
+        try stdout.writeAll("\n\n");
+
     if (option.sanskrit) {
         try stdout.print("{s}\n", .{
             verse.Object.get("sanskrit").?.String,
