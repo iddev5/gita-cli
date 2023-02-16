@@ -62,14 +62,18 @@ fn printVerseRaw(option: LibGita.Options, verse: std.json.Value, stdout: anytype
         try stdout.writeAll("\n\n");
 
     if (option.sanskrit) {
-        try stdout.print("{s}\n", .{
-            verse.Object.get("sanskrit").?.String,
-        });
+        try indentWriter(stdout, verse.Object.get("sanskrit").?.String, 4);
     }
 
     if (option.english) {
-        try stdout.print("{s}\n", .{
-            verse.Object.get("english").?.String,
-        });
+        try indentWriter(stdout, verse.Object.get("english").?.String, 4);
+    }
+}
+
+fn indentWriter(writer: anytype, string: []const u8, indent_size: usize) !void {
+    var iter = std.mem.tokenize(u8, string, "\n");
+    while (iter.next()) |slice| {
+        try writer.writeByteNTimes(' ', indent_size);
+        try writer.print("{s}\n", .{slice});
     }
 }
