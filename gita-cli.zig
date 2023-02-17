@@ -15,6 +15,7 @@ pub fn main() !void {
     const params = &[_]AyArgparse.ParamDesc{
         .{ .long = "no-name" },
         .{ .long = "no-tag" },
+        .{ .long = "inlined" },
         .{ .long = "indent", .need_value = true },
         .{ .long = "sanskrit", .need_value = true },
         .{ .long = "english", .need_value = true },
@@ -60,6 +61,9 @@ pub fn main() !void {
 
     if (argparse.arguments.get("indent")) |indent|
         option.indent = try std.fmt.parseUnsigned(u8, indent, 10);
+
+    if (argparse.arguments.get("inlined") != null)
+        option.inlined = true;
 
     var gita = try LibGita.init(allocator, option);
     defer gita.deinit();

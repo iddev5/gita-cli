@@ -8,6 +8,7 @@ pub const Options = struct {
     english: bool = true,
     no_name: bool = false,
     no_tag: bool = false,
+    inlined: bool = false,
     indent: u8 = 4,
 };
 
@@ -60,27 +61,30 @@ fn printVerseRaw(options: LibGita.Options, verse: std.json.Value, writer: anytyp
     }
 
     if (!options.no_tag) {
-        try writer.print("{}.{}", .{ 1, 1 });
+        try writer.print("{}.{}: ", .{ 1, 1 });
     }
 
-    if (@boolToInt(options.no_name) & @boolToInt(options.no_tag) == 0)
+    if (@boolToInt(options.no_name) & @boolToInt(options.no_tag) == 0 and !options.inlined)
         try writer.writeAll("\n\n");
 
+    const indent = if (options.inlined) 0 else options.indent;
+
     if (options.sanskrit) {
-        try indentWriter(writer, verse.Object.get("sanskrit").?.String, options.indent);
+        try indentWriter(writer, verse.Object.get("sanskrit").?.String, indent, options.inlined);
         if (options.english)
-            try writer.writeByte('\n');
+            try writer.writeByte(if (options.inlined) ' ' else '\n');
     }
 
     if (options.english) {
-        try indentWriter(writer, verse.Object.get("english").?.String, options.indent);
+        try indentWriter(writer, verse.Object.get("english").?.String, indent, options.inlined);
     }
 }
 
-fn indentWriter(writer: anytype, string: []const u8, indent_size: usize) !void {
+fn indentWriter(writer: anytype, string: []const u8, indent_size: usize, inlined: bool) !void {
     var iter = std.mem.tokenize(u8, string, "\n");
     while (iter.next()) |slice| {
         try writer.writeByteNTimes(' ', indent_size);
-        try writer.print("{s}\n", .{slice});
+        try writer.print("{s}", .{slice});
+        try writer.writeByte(if (inlined) ' ' else '\n');
     }
 }
