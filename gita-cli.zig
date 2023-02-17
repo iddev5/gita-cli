@@ -1,6 +1,9 @@
 const std = @import("std");
 const AyArgparse = @import("ay-arg");
 const LibGita = @import("libgita.zig");
+const notify = @cImport({
+    @cInclude("libnotify/notify.h");
+});
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
@@ -19,6 +22,7 @@ pub fn main() !void {
         .{ .long = "indent", .need_value = true },
         .{ .long = "sanskrit", .need_value = true },
         .{ .long = "english", .need_value = true },
+        .{ .long = "notify" },
     };
 
     var argparse = AyArgparse.init(allocator, params[0..]);
@@ -68,14 +72,41 @@ pub fn main() !void {
     var gita = try LibGita.init(allocator, option);
     defer gita.deinit();
 
+    var buf = std.ArrayList(u8).init(allocator);
+    defer buf.deinit();
+
+    var notify_mode = false;
+    if (argparse.arguments.get("notify") != null) {
+        notify_mode = true;
+    }
+
     if (verse_id) |vid| {
-        try gita.printVerse(
-            stdout,
-            try std.fmt.parseUnsigned(u8, chapter_id, 10),
-            try std.fmt.parseUnsigned(u8, vid, 10),
-        );
+        if (notify_mode) {
+            try gita.printVerse(
+                buf.writer(),
+                try std.fmt.parseUnsigned(u8, chapter_id, 10),
+                try std.fmt.parseUnsigned(u8, vid, 10),
+            );
+        } else {
+            try gita.printVerse(
+                stdout,
+                try std.fmt.parseUnsigned(u8, chapter_id, 10),
+                try std.fmt.parseUnsigned(u8, vid, 10),
+            );
+        }
     } else {
         try gita.printChapter(stdout, try std.fmt.parseUnsigned(u8, chapter_id, 10));
+    }
+
+    if (notify_mode) {
+        var n: ?*notify.NotifyNotification = null;
+        _ = notify.notify_init("Bhagavad Gita");
+
+        n = notify.notify_notification_new("Bhagavad Gita", buf.items.ptr, null);
+        notify.notify_notification_set_timeout(n, 5000);
+        if (notify.notify_notification_show(n, null) != 0) {
+            //error
+        }
     }
 
     try bw.flush();

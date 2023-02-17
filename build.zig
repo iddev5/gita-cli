@@ -13,6 +13,8 @@ pub fn build(b: *std.Build) void {
     exe.addModule("ay-arg", b.createModule(.{
         .source_file = .{ .path = "deps/ay-arg/main.zig" },
     }));
+    exe.linkSystemLibrary("libnotify");
+    exe.linkSystemLibrary("c");
     exe.install();
 
     const run_cmd = exe.run();
