@@ -54,24 +54,26 @@ pub fn printChapter(lib: *LibGita, writer: anytype, chapter_id: usize) !void {
     }
 }
 
-fn printVerseRaw(option: LibGita.Options, verse: std.json.Value, stdout: anytype) !void {
-    if (!option.no_name) {
-        try stdout.writeAll("Bhagavad Gita: ");
+fn printVerseRaw(options: LibGita.Options, verse: std.json.Value, writer: anytype) !void {
+    if (!options.no_name) {
+        try writer.writeAll("Bhagavad Gita: ");
     }
 
-    if (!option.no_tag) {
-        try stdout.print("{}.{}", .{ 1, 1 });
+    if (!options.no_tag) {
+        try writer.print("{}.{}", .{ 1, 1 });
     }
 
-    if (@boolToInt(option.no_name) & @boolToInt(option.no_tag) == 0)
-        try stdout.writeAll("\n\n");
+    if (@boolToInt(options.no_name) & @boolToInt(options.no_tag) == 0)
+        try writer.writeAll("\n\n");
 
-    if (option.sanskrit) {
-        try indentWriter(stdout, verse.Object.get("sanskrit").?.String, option.indent);
+    if (options.sanskrit) {
+        try indentWriter(writer, verse.Object.get("sanskrit").?.String, options.indent);
+        if (options.english)
+            try writer.writeByte('\n');
     }
 
-    if (option.english) {
-        try indentWriter(stdout, verse.Object.get("english").?.String, option.indent);
+    if (options.english) {
+        try indentWriter(writer, verse.Object.get("english").?.String, options.indent);
     }
 }
 
