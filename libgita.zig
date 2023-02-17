@@ -8,6 +8,7 @@ pub const Options = struct {
     english: bool = true,
     no_name: bool = false,
     no_tag: bool = false,
+    indent: u8 = 4,
 };
 
 allocator: std.mem.Allocator,
@@ -66,11 +67,11 @@ fn printVerseRaw(option: LibGita.Options, verse: std.json.Value, stdout: anytype
         try stdout.writeAll("\n\n");
 
     if (option.sanskrit) {
-        try indentWriter(stdout, verse.Object.get("sanskrit").?.String, 4);
+        try indentWriter(stdout, verse.Object.get("sanskrit").?.String, option.indent);
     }
 
     if (option.english) {
-        try indentWriter(stdout, verse.Object.get("english").?.String, 4);
+        try indentWriter(stdout, verse.Object.get("english").?.String, option.indent);
     }
 }
 
