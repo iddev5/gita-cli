@@ -7,10 +7,7 @@ const notify = @cImport({
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
-
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    const stdout = std.io.getStdOut().writer();
 
     var args = try std.process.argsAlloc(allocator);
     defer allocator.free(args);
@@ -23,6 +20,7 @@ pub fn main() !void {
         .{ .long = "sanskrit", .need_value = true },
         .{ .long = "english", .need_value = true },
         .{ .long = "notify" },
+        .{ .long = "server" },
     };
 
     var argparse = AyArgparse.init(allocator, params[0..]);
@@ -75,26 +73,38 @@ pub fn main() !void {
     const chapter = try std.fmt.parseUnsigned(u8, chapter_id, 10);
     const verse = if (verse_id) |vid| try std.fmt.parseUnsigned(u8, vid, 10) else null;
 
+    const server_mode = argparse.arguments.get("server") != null;
     const notify_mode = argparse.arguments.get("notify") != null;
-    if (notify_mode) {
-        var buf = std.ArrayList(u8).init(allocator);
-        defer buf.deinit();
-
-        try doPrint(&gita, buf.writer(), chapter, verse);
-
-        var n: ?*notify.NotifyNotification = null;
+    if (notify_mode)
         _ = notify.notify_init("Bhagavad Gita");
 
-        n = notify.notify_notification_new("Bhagavad Gita", buf.items.ptr, null);
-        notify.notify_notification_set_timeout(n, 5000);
-        if (notify.notify_notification_show(n, null) != 0) {
-            //error
-        }
-    } else {
-        try doPrint(&gita, stdout, chapter, verse);
-    }
+    const wait_time = 30 * std.time.ns_per_min;
 
-    try bw.flush();
+    while (true) {
+        if (notify_mode) {
+            var buf = std.ArrayList(u8).init(allocator);
+            defer buf.deinit();
+
+            try doPrint(&gita, buf.writer(), chapter, verse);
+
+            var n: ?*notify.NotifyNotification = null;
+
+            n = notify.notify_notification_new("Bhagavad Gita", buf.items.ptr, null);
+            notify.notify_notification_set_timeout(n, 5000);
+            if (notify.notify_notification_show(n, null) != 0) {
+                //error
+            }
+
+            notify.g_object_unref(n);
+        } else {
+            try doPrint(&gita, stdout, chapter, verse);
+        }
+
+        if (!server_mode)
+            break;
+
+        std.time.sleep(wait_time);
+    }
 }
 
 fn doPrint(gita: *LibGita, writer: anytype, chapter_id: u8, verse_id: ?u8) !void {
