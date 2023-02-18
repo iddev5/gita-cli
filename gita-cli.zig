@@ -72,33 +72,16 @@ pub fn main() !void {
     var gita = try LibGita.init(allocator, option);
     defer gita.deinit();
 
-    var buf = std.ArrayList(u8).init(allocator);
-    defer buf.deinit();
+    const chapter = try std.fmt.parseUnsigned(u8, chapter_id, 10);
+    const verse = if (verse_id) |vid| try std.fmt.parseUnsigned(u8, vid, 10) else null;
 
-    var notify_mode = false;
-    if (argparse.arguments.get("notify") != null) {
-        notify_mode = true;
-    }
-
-    if (verse_id) |vid| {
-        if (notify_mode) {
-            try gita.printVerse(
-                buf.writer(),
-                try std.fmt.parseUnsigned(u8, chapter_id, 10),
-                try std.fmt.parseUnsigned(u8, vid, 10),
-            );
-        } else {
-            try gita.printVerse(
-                stdout,
-                try std.fmt.parseUnsigned(u8, chapter_id, 10),
-                try std.fmt.parseUnsigned(u8, vid, 10),
-            );
-        }
-    } else {
-        try gita.printChapter(stdout, try std.fmt.parseUnsigned(u8, chapter_id, 10));
-    }
-
+    const notify_mode = argparse.arguments.get("notify") != null;
     if (notify_mode) {
+        var buf = std.ArrayList(u8).init(allocator);
+        defer buf.deinit();
+
+        try doPrint(&gita, buf.writer(), chapter, verse);
+
         var n: ?*notify.NotifyNotification = null;
         _ = notify.notify_init("Bhagavad Gita");
 
@@ -107,7 +90,17 @@ pub fn main() !void {
         if (notify.notify_notification_show(n, null) != 0) {
             //error
         }
+    } else {
+        try doPrint(&gita, stdout, chapter, verse);
     }
 
     try bw.flush();
+}
+
+fn doPrint(gita: *LibGita, writer: anytype, chapter_id: u8, verse_id: ?u8) !void {
+    if (verse_id) |vid| {
+        try gita.printVerse(writer, chapter_id, vid);
+    } else {
+        try gita.printChapter(writer, chapter_id);
+    }
 }
