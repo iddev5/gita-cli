@@ -76,7 +76,7 @@ pub fn main() !void {
 
     var notifier = if (notify_mode) Notifier.init() else null;
 
-    const wait_time = (if (argparse.arguments.get("server-loop")) |sl| try std.fmt.parseUnsigned(usize, sl, 10) else 30) * std.time.ns_per_min;
+    const wait_time = (if (argparse.arguments.get("server-loop-interval")) |sl| try std.fmt.parseUnsigned(usize, sl, 10) else 30) * std.time.ns_per_min;
 
     while (true) {
         if (notify_mode) {
