@@ -21,6 +21,7 @@ pub fn main() !void {
         .{ .long = "english", .need_value = true },
         .{ .long = "notify" },
         .{ .long = "server" },
+        .{ .long = "server-loop-interval", .need_value = true },
     };
 
     var argparse = AyArgparse.init(allocator, params[0..]);
@@ -78,7 +79,7 @@ pub fn main() !void {
     if (notify_mode)
         _ = notify.notify_init("Bhagavad Gita");
 
-    const wait_time = 30 * std.time.ns_per_min;
+    const wait_time = (if (argparse.arguments.get("server-loop")) |sl| try std.fmt.parseUnsigned(usize, sl, 10) else 30) * std.time.ns_per_min;
 
     while (true) {
         if (notify_mode) {
@@ -90,6 +91,7 @@ pub fn main() !void {
             var n: ?*notify.NotifyNotification = null;
 
             n = notify.notify_notification_new("Bhagavad Gita", buf.items.ptr, null);
+
             notify.notify_notification_set_timeout(n, 5000);
             if (notify.notify_notification_show(n, null) != 0) {
                 //error
