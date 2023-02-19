@@ -1,9 +1,6 @@
 const std = @import("std");
 const AyArgparse = @import("ay-arg");
 const LibGita = @import("libgita.zig");
-const notify = @cImport({
-    @cInclude("libnotify/notify.h");
-});
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
@@ -76,8 +73,8 @@ pub fn main() !void {
 
     const server_mode = argparse.arguments.get("server") != null;
     const notify_mode = argparse.arguments.get("notify") != null;
-    if (notify_mode)
-        _ = notify.notify_init("Bhagavad Gita");
+
+    var notifier = if (notify_mode) Notifier.init() else null;
 
     const wait_time = (if (argparse.arguments.get("server-loop")) |sl| try std.fmt.parseUnsigned(usize, sl, 10) else 30) * std.time.ns_per_min;
 
@@ -87,17 +84,7 @@ pub fn main() !void {
             defer buf.deinit();
 
             try doPrint(&gita, buf.writer(), chapter, verse);
-
-            var n: ?*notify.NotifyNotification = null;
-
-            n = notify.notify_notification_new("Bhagavad Gita", buf.items.ptr, null);
-
-            notify.notify_notification_set_timeout(n, 5000);
-            if (notify.notify_notification_show(n, null) != 0) {
-                //error
-            }
-
-            notify.g_object_unref(n);
+            try notifier.?.send(buf.items, 5000);
         } else {
             try doPrint(&gita, stdout, chapter, verse);
         }
@@ -116,3 +103,33 @@ fn doPrint(gita: *LibGita, writer: anytype, chapter_id: u8, verse_id: ?u8) !void
         try gita.printChapter(writer, chapter_id);
     }
 }
+
+const Notifier = NotifierLinux;
+
+const NotifierLinux = struct {
+    const libnotify = @cImport({
+        @cInclude("libnotify/notify.h");
+    });
+    pub fn init() Notifier {
+        _ = libnotify.notify_init("Bhagavad Gita");
+        return .{};
+    }
+
+    pub fn deinit(notifier: *Notifier) void {
+        _ = notifier;
+    }
+
+    pub fn send(notifier: *Notifier, data: []const u8, timeout: i32) !void {
+        _ = notifier;
+        var n: ?*libnotify.NotifyNotification = null;
+
+        n = libnotify.notify_notification_new("Bhagavad Gita", data.ptr, null);
+
+        libnotify.notify_notification_set_timeout(n, timeout);
+        if (libnotify.notify_notification_show(n, null) != 0) {
+            //error
+        }
+
+        libnotify.g_object_unref(n);
+    }
+};
