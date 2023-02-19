@@ -104,22 +104,38 @@ fn doPrint(gita: *LibGita, writer: anytype, chapter_id: u8, verse_id: ?u8) !void
     }
 }
 
-const Notifier = NotifierLinux;
+const Notifier = if (@import("builtin").os.tag == .windows) NotifierWindows else NotifierLinux;
+
+const NotifierWindows = struct {
+    pub fn init() NotifierWindows {
+        return .{};
+    }
+
+    pub fn deinit(notifier: *NotifierWindows) void {
+        _ = notifier;
+    }
+
+    pub fn send(notifier: *NotifierWindows, data: []const u8, timeout: i32) !void {
+        _ = notifier;
+        _ = data;
+        _ = timeout;
+    }
+};
 
 const NotifierLinux = struct {
     const libnotify = @cImport({
         @cInclude("libnotify/notify.h");
     });
-    pub fn init() Notifier {
+    pub fn init() NotifierLinux {
         _ = libnotify.notify_init("Bhagavad Gita");
         return .{};
     }
 
-    pub fn deinit(notifier: *Notifier) void {
+    pub fn deinit(notifier: *NotifierLinux) void {
         _ = notifier;
     }
 
-    pub fn send(notifier: *Notifier, data: []const u8, timeout: i32) !void {
+    pub fn send(notifier: *NotifierLinux, data: []const u8, timeout: i32) !void {
         _ = notifier;
         var n: ?*libnotify.NotifyNotification = null;
 
