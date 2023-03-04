@@ -1,0 +1,11 @@
+.{
+
+    .name = "gita-cli",
+    .version = "0.0.1",
+    .dependencies = .{
+        .@"ay-arg" = .{
+            .url = "https://github.com/iddev5/ay-arg/archive/595e6b8f23d50e2f10343de8349d455e202bbf13.tar.gz",
+            .hash = "1220746f2012ab5bbddf4f242f1808a2be0078641dbce30140a95f26b069d849c9b3",
+        },
+    }
+}

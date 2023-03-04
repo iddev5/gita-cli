@@ -10,9 +10,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    exe.addModule("ay-arg", b.createModule(.{
-        .source_file = .{ .path = "deps/ay-arg/main.zig" },
-    }));
+    exe.addModule("ay-arg", b.dependency("ay-arg", .{
+        .target = target,
+        .optimize = optimize,
+    }).module("ay-arg"));
     exe.linkSystemLibrary("libnotify");
     exe.linkSystemLibrary("c");
     exe.install();
