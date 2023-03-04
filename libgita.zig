@@ -38,7 +38,7 @@ pub fn printVerse(lib: *LibGita, writer: anytype, chapter_id: usize, verse_id: u
     const chapter = lib.tree.root.Array.items[chapter_id - 1];
     const verse = chapter.Array.items[verse_id - 1];
 
-    try printVerseRaw(lib.options, verse, writer);
+    try printVerseRaw(lib.options, verse, writer, chapter_id, verse_id);
 }
 
 pub fn printChapter(lib: *LibGita, writer: anytype, chapter_id: usize) !void {
@@ -48,20 +48,20 @@ pub fn printChapter(lib: *LibGita, writer: anytype, chapter_id: usize) !void {
     var i: usize = 1;
     while (i < num_verses + 1) : (i += 1) {
         const verse = chapter.Array.items[i - 1];
-        try printVerseRaw(lib.options, verse, writer);
+        try printVerseRaw(lib.options, verse, writer, chapter_id, i);
 
         if (i != num_verses)
             try writer.writeAll("\n\n\n\n");
     }
 }
 
-fn printVerseRaw(options: LibGita.Options, verse: std.json.Value, writer: anytype) !void {
+fn printVerseRaw(options: LibGita.Options, verse: std.json.Value, writer: anytype, chapter_id: usize, verse_id: usize) !void {
     if (!options.no_name) {
         try writer.writeAll("Bhagavad Gita: ");
     }
 
     if (!options.no_tag) {
-        try writer.print("{}.{}: ", .{ 1, 1 });
+        try writer.print("{}.{}: ", .{ chapter_id, verse_id });
     }
 
     if (@boolToInt(options.no_name) & @boolToInt(options.no_tag) == 0 and !options.inlined)
