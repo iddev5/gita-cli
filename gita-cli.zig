@@ -17,8 +17,6 @@ pub fn main() !void {
         .{ .long = "sanskrit", .need_value = true },
         .{ .long = "english", .need_value = true },
         .{ .long = "notify" },
-        .{ .long = "server" },
-        .{ .long = "server-loop-interval", .need_value = true },
     };
 
     var argparse = AyArgparse.init(allocator, params[0..]);
@@ -71,28 +69,17 @@ pub fn main() !void {
     const chapter = try std.fmt.parseUnsigned(u8, chapter_id, 10);
     const verse = if (verse_id) |vid| try std.fmt.parseUnsigned(u8, vid, 10) else null;
 
-    const server_mode = argparse.arguments.get("server") != null;
     const notify_mode = argparse.arguments.get("notify") != null;
-
     var notifier = if (notify_mode) Notifier.init() else null;
 
-    const wait_time = (if (argparse.arguments.get("server-loop-interval")) |sl| try std.fmt.parseUnsigned(usize, sl, 10) else 30) * std.time.ns_per_min;
+    if (notify_mode) {
+        var buf = std.ArrayList(u8).init(allocator);
+        defer buf.deinit();
 
-    while (true) {
-        if (notify_mode) {
-            var buf = std.ArrayList(u8).init(allocator);
-            defer buf.deinit();
-
-            try doPrint(&gita, buf.writer(), chapter, verse);
-            try notifier.?.send(buf.items, 5000);
-        } else {
-            try doPrint(&gita, stdout, chapter, verse);
-        }
-
-        if (!server_mode)
-            break;
-
-        std.time.sleep(wait_time);
+        try doPrint(&gita, buf.writer(), chapter, verse);
+        try notifier.?.send(buf.items, 5000);
+    } else {
+        try doPrint(&gita, stdout, chapter, verse);
     }
 }
 
