@@ -77,7 +77,7 @@ pub fn main() !void {
         const random = random_engine.random();
 
         if (chapter == null) {
-            const num_chapter = gita.tree.root.Array.items.len;
+            const num_chapter = gita.getChapterCount();
             chapter = random.uintLessThan(u8, @intCast(u8, num_chapter)) + 1;
         }
 
@@ -85,9 +85,7 @@ pub fn main() !void {
             // error: Conflicting arguments <verse> and --random
         }
 
-        const chapter_obj = gita.tree.root.Array.items[chapter - 1];
-        const num_verses = chapter_obj.Array.items.len;
-
+        const num_verses = gita.getVerseCount(chapter.?);
         verse = random.uintLessThan(u8, @intCast(u8, num_verses)) + 1;
     }
 
@@ -98,10 +96,10 @@ pub fn main() !void {
         var buf = std.ArrayList(u8).init(allocator);
         defer buf.deinit();
 
-        try doPrint(&gita, buf.writer(), chapter, verse);
+        try doPrint(&gita, buf.writer(), chapter.?, verse.?);
         try notifier.?.send(buf.items, 5000);
     } else {
-        try doPrint(&gita, stdout, chapter, verse);
+        try doPrint(&gita, stdout, chapter.?, verse.?);
     }
 }
 

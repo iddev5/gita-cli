@@ -34,6 +34,15 @@ pub fn deinit(lib: *LibGita) void {
     lib.tree.deinit();
 }
 
+pub fn getChapterCount(lib: *LibGita) usize {
+    return lib.tree.root.Array.items.len;
+}
+
+pub fn getVerseCount(lib: *LibGita, chapter: usize) usize {
+    const chapter_obj = lib.tree.root.Array.items[chapter - 1];
+    return chapter_obj.Array.items.len;
+}
+
 pub fn printVerse(lib: *LibGita, writer: anytype, chapter_id: usize, verse_id: usize) !void {
     const chapter = lib.tree.root.Array.items[chapter_id - 1];
     const verse = chapter.Array.items[verse_id - 1];
