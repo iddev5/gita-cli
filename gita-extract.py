@@ -20,13 +20,9 @@ with open("gita.json", "w+") as w:
 
             # The last element is not a verse, it is the footer
             for i, verse in enumerate(verses[0:-1]): 
-                # There are exactly 6 spaces between the Sanskrit and English text
-                # for every verse.
-                parts = verse.split('\n' * 6)
-
-                # Remove || num || from Sanskrit
-                sanskrit = re.sub("॥\s[१२३४५६७८९०]+\s॥", '', parts[0])
-                sanskrit = [s.strip() for s in sanskrit.split('\n') if s]
+                # Split every || sanskrit num ||
+                parts = re.split("॥\s*[१२३४५६७८९०]+\s*॥", verse)
+                sanskrit = [s.strip() for s in parts[0].split('\n') if s]
 
                 # Remove [ num ] from English and fix all quotes
                 english = re.sub('\[[0-9]+\]', '', parts[1])
@@ -35,6 +31,7 @@ with open("gita.json", "w+") as w:
 
                 # Write Json
                 w.write("        {\n")
+                w.write("            \"loc\": \"{}.{}\",\n".format(fi, i + 1))
                 w.write("            \"sanskrit\": \"{}\",\n".format('\\n'.join(sanskrit)))
                 w.write("            \"english\": \"{}\"\n".format('\\n'.join(english)))
                 w.write("        }}{}\n".format(',' if i != len(verses) - 2 else ''))
