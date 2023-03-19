@@ -16,7 +16,7 @@ with open("gita.json", "w+") as w:
             # Remove anything prior to "DISCOURSE."
             lines = content[starting_pos + len("DISCOURSE.") + 1:]
             # Split everytime a [num] is encountered
-            verses = re.split('\([0-9]+\)', lines)
+            verses = re.split('\([0-9]+\)?', lines)
 
             # The last element is not a verse, it is the footer
             for i, verse in enumerate(verses[0:-1]): 
