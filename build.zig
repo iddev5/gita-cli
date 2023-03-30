@@ -14,8 +14,15 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     }).module("ay-arg"));
-    exe.linkSystemLibrary("libnotify");
-    exe.linkSystemLibrary("c");
+    if (exe.target.isWindows()) {
+        exe.addIncludePath("deps");
+        exe.addIncludePath("deps/WinToast/src");
+        exe.addCSourceFile("deps/WinToast/src/wintoastlib.cpp", &.{});
+        exe.addCSourceFile("deps/Toast.cpp", &.{});
+    } else {
+        exe.linkSystemLibrary("libnotify");
+        exe.linkSystemLibrary("c");
+    }
     exe.install();
 
     const run_cmd = exe.run();

@@ -90,14 +90,14 @@ pub fn main() !void {
     }
 
     const notify_mode = argparse.arguments.get("notify") != null;
-    var notifier = if (notify_mode) Notifier.init() else null;
+    var notifier = if (notify_mode) try Notifier.init() else null;
 
     if (notify_mode) {
         var buf = std.ArrayList(u8).init(allocator);
         defer buf.deinit();
 
         try doPrint(&gita, buf.writer(), chapter.?, verse.?);
-        try notifier.?.send(buf.items, 5000);
+        try notifier.?.send(allocator, buf.items, 5000);
     } else {
         try doPrint(&gita, stdout, chapter.?, verse.?);
     }
@@ -114,7 +114,16 @@ fn doPrint(gita: *LibGita, writer: anytype, chapter_id: u8, verse_id: ?u8) !void
 const Notifier = if (@import("builtin").os.tag == .windows) NotifierWindows else NotifierLinux;
 
 const NotifierWindows = struct {
-    pub fn init() NotifierWindows {
+    const libtoast = @cImport({
+        @cInclude("Toast.h");
+    });
+
+    pub fn init() !NotifierWindows {
+        switch (libtoast.toast_init()) {
+            libtoast.TOAST_OK => {},
+            libtoast.TOAST_INIT_ERROR => return error.InitError,
+            else => unreachable,
+        }
         return .{};
     }
 
@@ -122,10 +131,17 @@ const NotifierWindows = struct {
         _ = notifier;
     }
 
-    pub fn send(notifier: *NotifierWindows, data: []const u8, timeout: i32) !void {
+    pub fn send(notifier: *NotifierWindows, allocator: std.mem.Allocator, data: []const u8, timeout: i32) !void {
         _ = notifier;
-        _ = data;
         _ = timeout;
+
+        var text = try std.unicode.utf8ToUtf16LeWithNull(allocator, data);
+        defer allocator.free(text);
+        switch (libtoast.toast_show(text)) {
+            libtoast.TOAST_OK => {},
+            libtoast.TOAST_SHOW_ERROR => return error.ShowError,
+            else => unreachable,
+        }
     }
 };
 
@@ -133,7 +149,7 @@ const NotifierLinux = struct {
     const libnotify = @cImport({
         @cInclude("libnotify/notify.h");
     });
-    pub fn init() NotifierLinux {
+    pub fn init() !NotifierLinux {
         _ = libnotify.notify_init("Bhagavad Gita");
         return .{};
     }
@@ -142,8 +158,9 @@ const NotifierLinux = struct {
         _ = notifier;
     }
 
-    pub fn send(notifier: *NotifierLinux, data: []const u8, timeout: i32) !void {
+    pub fn send(notifier: *NotifierLinux, allocator: std.mem.Allocator, data: []const u8, timeout: i32) !void {
         _ = notifier;
+        _ = allocator;
         var n: ?*libnotify.NotifyNotification = null;
 
         n = libnotify.notify_notification_new("Bhagavad Gita", data.ptr, null);
