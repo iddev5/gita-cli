@@ -1,0 +1,21 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    timeout-minutes: 5
+    runs-on: ${{ matrix.target }}
+    strategy:
+      matrix:
+        target: [fedora-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1
+      - name: Setup zig
+        uses: goto-bus-stop/setup-zig@v1
+        with: 
+          version: master
+      - name: Build
+        run: zig build
