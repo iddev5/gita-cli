@@ -17,10 +17,10 @@ pub fn build(b: *std.Build) void {
     if (exe.target.isWindows()) {
         exe.addIncludePath("deps");
         exe.addIncludePath("deps/WinToast/src");
-        exe.addCSourceFile("deps/WinToast/src/wintoastlib.cpp", &.{});
-        exe.addCSourceFile("deps/Toast.cpp", &.{});
-        exe.linkSystemLibrary("shlwapi");
-        exe.linkSystemLibrary("user32");
+        exe.addCSourceFile("deps/WinToast/src/wintoastlib.cpp", &.{"-std=c++11"});
+        exe.addCSourceFile("deps/Toast.cpp", &.{"-std=c++11"});
+        exe.linkSystemLibraryName("shlwapi");
+        exe.linkSystemLibraryName("user32");
     } else {
         exe.linkSystemLibrary("libnotify");
         exe.linkSystemLibrary("c");
