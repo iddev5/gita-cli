@@ -19,6 +19,8 @@ pub fn build(b: *std.Build) void {
         exe.addIncludePath("deps/WinToast/src");
         exe.addCSourceFile("deps/WinToast/src/wintoastlib.cpp", &.{});
         exe.addCSourceFile("deps/Toast.cpp", &.{});
+        exe.linkSystemLibrary("shlwapi");
+        exe.linkSystemLibrary("user32");
     } else {
         exe.linkSystemLibrary("libnotify");
         exe.linkSystemLibrary("c");
