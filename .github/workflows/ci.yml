@@ -19,7 +19,7 @@ jobs:
         uses: fbactions/setup-winsdk@v1
         with:
           winsdk-build-version: 19041
-      - run: Get-ItemPropertyValue -Path "HKLM:\\Software\\Microsoft\\Windows Kits\\InstalledRoots"
+      - run: Get-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows Kits\\InstalledRoots"
       - name: Get path
         run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\Windows Kits"
             #- name: Setup zig
