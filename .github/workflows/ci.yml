@@ -20,10 +20,12 @@ jobs:
         with:
           winsdk-build-version: 19041
       - run: Get-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows Kits\\Installed Roots"
-      - name: Get path
-        run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\Windows Kits" /F
+      #- name: Get path
+      #  run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\Windows Kits" /F
       - name: Get All
         run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\Windows" /F
+      - name: Get Others
+        run: tree "C:\\Program Files\\Microsoft SDKs\\Windows" /F
             #- name: Setup zig
             #uses: goto-bus-stop/setup-zig@v2
             #with: 
