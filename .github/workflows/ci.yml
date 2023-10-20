@@ -22,6 +22,8 @@ jobs:
       - run: Get-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows Kits\\Installed Roots"
       - name: Get path
         run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\Windows Kits" /F
+      - name: Get All
+        run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\" /F
             #- name: Setup zig
             #uses: goto-bus-stop/setup-zig@v2
             #with: 
