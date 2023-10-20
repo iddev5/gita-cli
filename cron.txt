@@ -1,0 +1,1 @@
+*/15 * * * * <Path-To-Gita-CLI> 1 1 --sanskrit=false --inlined --notify --no-name >/dev/null 2>&1
