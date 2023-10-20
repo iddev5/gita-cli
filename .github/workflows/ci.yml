@@ -25,7 +25,7 @@ jobs:
       - name: Get All
         run: tree "C:\\Program Files (x86)\\Microsoft SDKs\\Windows" /F
       - name: Get Others
-        run: tree "C:\\Program Files (x86)\\Microsoft Kits\\10" /F
+        run: tree "C:\\Program Files (x86)\\Windows Kits\\10" /F
             #- name: Setup zig
             #uses: goto-bus-stop/setup-zig@v2
             #with: 
